@@ -1,6 +1,9 @@
 package ring
 
-import "sync"
+import (
+	"hash/fnv"
+	"sync"
+)
 
 type Ring struct {
 	mu     sync.RWMutex
@@ -16,4 +19,10 @@ func New(vnodes int) *Ring {
 		owner:  make(map[uint32]string),
 		nodes:  make(map[string]bool),
 	}
+}
+
+func hash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
 }
