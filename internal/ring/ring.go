@@ -46,3 +46,22 @@ func (r *Ring) AddNode(id string) {
 
 	sort.Slice(r.hashes, func(i, j int) bool { return r.hashes[i] < r.hashes[j] })
 }
+
+func (r *Ring) GetNode(key string) (string, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if len(r.hashes) == 0 {
+		return "", false
+	}
+
+	h := hash(key)
+
+	index := sort.Search(len(r.hashes), func(i int) bool { return r.hashes[i] >= h })
+
+	if index == len(r.hashes) {
+		index = 0
+	}
+
+	return r.owner[r.hashes[index]], true
+}
