@@ -24,3 +24,11 @@ func TestSameKeySameNode(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyRing(t *testing.T) {
+	r := New(150)
+	node, ok := r.GetNode("user:42")
+	if ok {
+		t.Fatalf("empty ring returned node %q, want ok=false", node)
+	}
+}
