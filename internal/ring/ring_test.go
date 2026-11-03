@@ -44,3 +44,33 @@ func TestAddNodeTwice(t *testing.T) {
 		t.Fatalf("adding node twice changed positions from %d to %d", before, after)
 	}
 }
+
+func TestRemoveNode(t *testing.T) {
+	r := New(150)
+	r.AddNode("node-0")
+	r.AddNode("node-1")
+	r.AddNode("node-2")
+
+	r.RemoveNode("node-1")
+
+	if len(r.hashes) != 300 {
+		t.Fatalf("len(r.hashes) = %d, want 300", len(r.hashes))
+	}
+
+	if len(r.nodes) != 2 {
+		t.Fatalf("len(r.nodes) = %d, want 2", len(r.nodes))
+	}
+
+	for i := 0; i < 10000; i++ {
+		key := fmt.Sprintf("key-%d", i)
+		node, ok := r.GetNode(key)
+
+		if !ok {
+			t.Fatalf("GetNode(%q) found no node", key)
+		}
+
+		if node == "node-1" {
+			t.Fatalf("key %q still routes to removed node-1", key)
+		}
+	}
+}
