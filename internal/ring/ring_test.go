@@ -32,3 +32,15 @@ func TestEmptyRing(t *testing.T) {
 		t.Fatalf("empty ring returned node %q, want ok=false", node)
 	}
 }
+
+func TestAddNodeTwice(t *testing.T) {
+	r := New(150)
+	r.AddNode("node-1")
+	before := len(r.hashes)
+
+	r.AddNode("node-1")
+
+	if after := len(r.hashes); after != before {
+		t.Fatalf("adding node twice changed positions from %d to %d", before, after)
+	}
+}
