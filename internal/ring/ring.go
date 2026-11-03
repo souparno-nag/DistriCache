@@ -2,6 +2,7 @@ package ring
 
 import (
 	"hash/fnv"
+	"slices"
 	"sort"
 	"strconv"
 	"sync"
@@ -64,4 +65,22 @@ func (r *Ring) GetNode(key string) (string, bool) {
 	}
 
 	return r.owner[r.hashes[index]], true
+}
+
+func (r *Ring) RemoveNode(id string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if !r.nodes[id] {
+		return
+	}
+	delete(r.nodes, id)
+
+	r.hashes = slices.DeleteFunc(r.hashes, func(h uint32) bool {
+		if r.owner[h] == id {
+			delete(r.owner, h)
+			return true
+		}
+		return false
+	})
 }
