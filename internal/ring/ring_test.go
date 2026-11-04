@@ -137,3 +137,25 @@ func TestGetNodesEmptyRing(t *testing.T) {
 		t.Fatalf("empty ring returned node %q, want no nodes", nodes)
 	}
 }
+
+func TestGetNodesDistinctCappedAtNodeCount(t *testing.T) {
+	r := New(150)
+	r.AddNode("node-0")
+	r.AddNode("node-1")
+	r.AddNode("node-2")
+
+	for i := 0; i < 1000; i++ {
+		key := fmt.Sprintf("key-%d", i)
+		nodes := r.GetNodes(key, 5)
+		if len(nodes) != 3 {
+			t.Fatalf("GetNodes(%q, 5) returned %d nodes, want 3", key, len(nodes))
+		}
+		seen := make(map[string]bool)
+		for _, n := range nodes {
+			if seen[n] {
+				t.Fatalf("GetNodes(%q, 5) = %q, %s appears twice", key, nodes, n)
+			}
+			seen[n] = true
+		}
+	}
+}
