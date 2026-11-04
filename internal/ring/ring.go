@@ -67,6 +67,37 @@ func (r *Ring) GetNode(key string) (string, bool) {
 	return r.owner[r.hashes[index]], true
 }
 
+func (r *Ring) GetNodes(key string, n int) []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if len(r.hashes) == 0 || n <= 0 {
+		return nil
+	}
+
+	h := hash(key)
+
+	index := sort.Search(len(r.hashes), func(i int) bool { return r.hashes[i] >= h })
+	if index == len(r.hashes) {
+		index = 0
+	}
+
+	result := make([]string, 0, n)
+	seen := make(map[string]bool)
+
+	i := index
+	for step := 0; step < len(r.hashes) && len(result) < n; step++ {
+		node := r.owner[r.hashes[i]]
+		if !seen[node] {
+			seen[node] = true
+			result = append(result, node)
+		}
+		i = (i + 1) % len(r.hashes)
+	}
+
+	return result
+}
+
 func (r *Ring) RemoveNode(id string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
