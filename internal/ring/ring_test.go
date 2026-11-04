@@ -107,3 +107,25 @@ func TestConcurrentAccess(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestGetNodesFirstMatchesGetNode(t *testing.T) {
+	r := New(150)
+	r.AddNode("node-0")
+	r.AddNode("node-1")
+	r.AddNode("node-2")
+
+	for i := 0; i < 1000; i++ {
+		key := fmt.Sprintf("key-%d", i)
+		first, ok := r.GetNode(key)
+		if !ok {
+			t.Fatalf("GetNode(%q) found no node on a non-empty ring", key)
+		}
+		check := r.GetNodes(key, 1)
+		if len(check) != 1 {
+			t.Fatalf("GetNodes(%q, 1) returned %d nodes, want 1", key, len(check))
+		}
+		if check[0] != first {
+			t.Fatalf("GetNodes(%q, 1)[0] = %s, want %s (from GetNode)", key, check[0], first)
+		}
+	}
+}
