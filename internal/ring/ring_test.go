@@ -2,6 +2,7 @@ package ring
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -73,4 +74,36 @@ func TestRemoveNode(t *testing.T) {
 			t.Fatalf("key %q still routes to removed node-1", key)
 		}
 	}
+}
+
+func TestConcurrentAccess(t *testing.T) {
+	r := New(150)
+	r.AddNode("node-0")
+	r.AddNode("node-2")
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < 1000; j++ {
+				key := fmt.Sprintf("key-%d-%d", i, j)
+				if _, ok := r.GetNode(key); !ok {
+					t.Errorf("GetNode(%q) returned ok=false", key)
+				}
+			}
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for j := 0; j < 100; j++ {
+			r.AddNode("node-1")
+			r.RemoveNode("node-1")
+		}
+	}()
+
+	wg.Wait()
 }
