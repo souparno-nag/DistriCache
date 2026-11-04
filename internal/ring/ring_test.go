@@ -129,3 +129,11 @@ func TestGetNodesFirstMatchesGetNode(t *testing.T) {
 		}
 	}
 }
+
+func TestGetNodesEmptyRing(t *testing.T) {
+	r := New(150)
+	nodes := r.GetNodes("key-1", 1)
+	if len(nodes) != 0 {
+		t.Fatalf("empty ring returned node %q, want no nodes", nodes)
+	}
+}
