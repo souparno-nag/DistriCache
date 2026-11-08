@@ -2,6 +2,7 @@ package ring
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"testing"
 )
@@ -157,5 +158,24 @@ func TestGetNodesDistinctCappedAtNodeCount(t *testing.T) {
 			}
 			seen[n] = true
 		}
+	}
+}
+
+func TestNonDuplicatePositions(t *testing.T) {
+	const nodes, vnodes = 50, 150
+	r := New(vnodes)
+	for i := 0; i < nodes; i++ {
+		r.AddNode(fmt.Sprintf("node-%d", i))
+	}
+
+	want := nodes * vnodes
+	if len(r.hashes) != want {
+		t.Fatalf("len(r.hashes) = %d, want %d", len(r.hashes), want)
+	}
+	if len(r.owner) != len(r.hashes) {
+		t.Fatalf("len(r.owner) = %d, len(r.hashes) = %d, want equal", len(r.owner), len(r.hashes))
+	}
+	if !sort.SliceIsSorted(r.hashes, func(i, j int) bool { return r.hashes[i] < r.hashes[j] }) {
+		t.Fatalf("r.hashes is not sorted")
 	}
 }

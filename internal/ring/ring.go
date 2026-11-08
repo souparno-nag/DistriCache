@@ -40,7 +40,16 @@ func (r *Ring) AddNode(id string) {
 	r.nodes[id] = true
 
 	for i := 0; i < r.vnodes; i++ {
-		h := hash(id + "#" + strconv.Itoa(i))
+		name := id + "#" + strconv.Itoa(i)
+		h := hash(name)
+
+		for attempt := 1; ; attempt++ {
+			if _, taken := r.owner[h]; !taken {
+				break
+			}
+			h = hash(name + "#" + strconv.Itoa(attempt))
+		}
+
 		r.hashes = append(r.hashes, h)
 		r.owner[h] = id
 	}
