@@ -179,3 +179,36 @@ func TestNonDuplicatePositions(t *testing.T) {
 		t.Fatalf("r.hashes is not sorted")
 	}
 }
+
+func TestDistribution(t *testing.T) {
+	const keys = 100000
+	nodeIDs := []string{"node-0", "node-1", "node-2"}
+
+	for _, vnodes := range []int{1, 10, 50, 150, 500} {
+		t.Run(fmt.Sprintf("vnodes=%d", vnodes), func(t *testing.T) {
+			r := New(vnodes)
+			for _, nodeId := range nodeIDs {
+				r.AddNode(nodeId)
+			}
+
+			counts := make(map[string]int)
+			for i := 0; i < keys; i++ {
+				node, _ := r.GetNode(fmt.Sprintf("key-%d", i))
+				counts[node]++
+			}
+
+			minC, maxC := keys, 0
+			for _, id := range nodeIDs {
+				c := counts[id]
+				t.Logf("%s: %d keys (%.1f%%)", id, c, 100*float64(c)/keys)
+				if c < minC {
+					minC = c
+				}
+				if c > maxC {
+					maxC = c
+				}
+			}
+			t.Logf("max/min ratio: %.2f", float64(maxC)/float64(minC))
+		})
+	}
+}
